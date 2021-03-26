@@ -22,6 +22,7 @@ import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.packet.RequestChunkRadiusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket.ItemEntry;
+import dev.waterdog.player.PlayerRewriteUtils;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -56,7 +57,7 @@ public class RewriteData {
      * The dimensionId the player is currently in
      */
     private int dimension = 0;
-    private RequestChunkRadiusPacket chunkRadius;
+    private RequestChunkRadiusPacket chunkRadius = PlayerRewriteUtils.defaultChunkRadius;
 
     private Vector3f spawnPosition;
     private Vector2f rotation;
@@ -99,12 +100,12 @@ public class RewriteData {
         this.blockPaletteRewrite = paletteRewrite;
     }
 
-    public void setBlockProperties(List<BlockPropertyData> blockProperties) {
-        this.blockProperties = blockProperties;
-    }
-
     public List<BlockPropertyData> getBlockProperties() {
         return this.blockProperties;
+    }
+
+    public void setBlockProperties(List<BlockPropertyData> blockProperties) {
+        this.blockProperties = blockProperties;
     }
 
     public List<GameRuleData<?>> getGameRules() {
@@ -149,30 +150,30 @@ public class RewriteData {
 
     public void parseItemIds(List<ItemEntry> itemEntries) {
         Object2ObjectMap<String, ItemEntry> items = new Object2ObjectOpenHashMap<>();
-        for (ItemEntry entry : itemEntries){
+        for (ItemEntry entry : itemEntries) {
             items.put(entry.getIdentifier(), entry);
         }
         this.itemEntriesMap = items;
-    }
-
-    public void setItemEntriesMap(Object2ObjectMap<String, ItemEntry> itemEntriesMap) {
-        this.itemEntriesMap = itemEntriesMap;
     }
 
     public Object2ObjectMap<String, ItemEntry> getItemEntriesMap() {
         return this.itemEntriesMap;
     }
 
-    public void setShieldBlockingId(Integer shieldBlockingId) {
-        this.shieldBlockingId = shieldBlockingId;
+    public void setItemEntriesMap(Object2ObjectMap<String, ItemEntry> itemEntriesMap) {
+        this.itemEntriesMap = itemEntriesMap;
     }
 
     public int getShieldBlockingId() {
-        if (this.shieldBlockingId != null){
+        if (this.shieldBlockingId != null) {
             return this.shieldBlockingId;
         }
         ItemEntry itemEntry = this.itemEntriesMap.get("minecraft:shield");
         Preconditions.checkNotNull(itemEntry, "Block shield id can not be null!");
         return itemEntry.getId();
+    }
+
+    public void setShieldBlockingId(Integer shieldBlockingId) {
+        this.shieldBlockingId = shieldBlockingId;
     }
 }

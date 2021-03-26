@@ -29,13 +29,11 @@ import java.util.Map;
  */
 public class ProtocolConstants {
 
-    public static final int DEFAULT_RAKNET_VER = 10;
-
     public static final Object2ObjectArrayMap<Integer, ProtocolVersion> protocolMap = new Object2ObjectArrayMap<>();
     public static final Map<ProtocolVersion, BedrockCodec> protocol2CodecMap = new EnumMap<>(ProtocolVersion.class);
 
     static {
-        for (ProtocolVersion protocol : ProtocolVersion.values()){
+        for (ProtocolVersion protocol : ProtocolVersion.values()) {
             protocolMap.put(protocol.getProtocol(), protocol);
         }
     }
@@ -52,14 +50,19 @@ public class ProtocolConstants {
         return protocolMap.get(VersionInfo.LATEST_PROTOCOL_VERSION);
     }
 
-    public static BedrockCodec getBedrockCodec(ProtocolVersion protocol){
+    public static BedrockCodec getBedrockCodec(ProtocolVersion protocol) {
         return protocol2CodecMap.get(protocol);
     }
 
     /**
      * Here we register customized, performance improved codecs for supported game versions.
      */
-    public static void registerCodecs(){
+    public static void registerCodecs() {
+        registerCodec(ProtocolVersion.MINECRAFT_PE_1_8, new BedrockCodec313());
+        registerCodec(ProtocolVersion.MINECRAFT_PE_1_9, new BedrockCodec332());
+        registerCodec(ProtocolVersion.MINECRAFT_PE_1_10, new BedrockCodec340());
+        registerCodec(ProtocolVersion.MINECRAFT_PE_1_11, new BedrockCodec354());
+        registerCodec(ProtocolVersion.MINECRAFT_PE_1_12, new BedrockCodec361());
         registerCodec(ProtocolVersion.MINECRAFT_PE_1_13, new BedrockCodec388());
         registerCodec(ProtocolVersion.MINECRAFT_PE_1_14_30, new BedrockCodec389());
         registerCodec(ProtocolVersion.MINECRAFT_PE_1_14_60, new BedrockCodec390());
@@ -67,16 +70,18 @@ public class ProtocolConstants {
         registerCodec(ProtocolVersion.MINECRAFT_PE_1_16_20, new BedrockCodec408());
         registerCodec(ProtocolVersion.MINECRAFT_PE_1_16_100, new BedrockCodec419());
         registerCodec(ProtocolVersion.MINECRAFT_PE_1_16_200, new BedrockCodec422());
+        registerCodec(ProtocolVersion.MINECRAFT_PE_1_16_210, new BedrockCodec428());
     }
 
     /**
      * Register BedrockCodec for specific protocol version.
-     * @param protocol protocol version matched for instance of BedrockCodec.
+     *
+     * @param protocol     protocol version matched for instance of BedrockCodec.
      * @param bedrockCodec must match same protocol version as protocol or exception will be thrown.
      * @return if registration was not canceled by plugin.
      */
-    protected static boolean registerCodec(ProtocolVersion protocol, BedrockCodec bedrockCodec){
-        Preconditions.checkArgument(!protocol2CodecMap.containsKey(protocol), "BedrockCodec "+protocol+" is registered!");
+    protected static boolean registerCodec(ProtocolVersion protocol, BedrockCodec bedrockCodec) {
+        Preconditions.checkArgument(!protocol2CodecMap.containsKey(protocol), "BedrockCodec " + protocol + " is registered!");
         Preconditions.checkArgument(protocol == bedrockCodec.getProtocol(), "Protocol versions does not match!");
 
         ProxyServer proxy = ProxyServer.getInstance();
@@ -87,7 +92,7 @@ public class ProtocolConstants {
 
         protocol.setBedrockCodec(bedrockCodec);
         protocol2CodecMap.put(protocol, bedrockCodec);
-        proxy.getLogger().debug("Registered custom BedrockCodec "+protocol);
+        proxy.getLogger().debug("Registered custom BedrockCodec " + protocol);
         return true;
     }
 }

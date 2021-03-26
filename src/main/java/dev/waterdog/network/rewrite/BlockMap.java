@@ -23,11 +23,11 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
-import io.netty.buffer.AbstractByteBufAllocator;
-import io.netty.buffer.ByteBuf;
 import dev.waterdog.network.rewrite.types.BlockPaletteRewrite;
 import dev.waterdog.network.rewrite.types.RewriteData;
 import dev.waterdog.player.ProxiedPlayer;
+import io.netty.buffer.AbstractByteBufAllocator;
+import io.netty.buffer.ByteBuf;
 
 public class BlockMap implements BedrockPacketHandler {
 
@@ -49,31 +49,43 @@ public class BlockMap implements BedrockPacketHandler {
         return this.player.canRewrite() && packet.handle(this);
     }
 
-    protected int translateId(int runtimeId){
+    protected int translateId(int runtimeId) {
         return this.getPaletteRewrite().fromDownstream(runtimeId);
     }
 
     @Override
     public boolean handle(LevelChunkPacket packet) {
-        int sections = packet.getSubChunksLength();
         byte[] oldData = packet.getData();
-        ByteBuf from = AbstractByteBufAllocator.DEFAULT.directBuffer(oldData.length);
-        ByteBuf to = AbstractByteBufAllocator.DEFAULT.directBuffer(oldData.length);
-        from.writeBytes(oldData);
+        ByteBuf from = AbstractByteBufAllocator.DEFAULT.ioBuffer(oldData.length);
+        ByteBuf to = AbstractByteBufAllocator.DEFAULT.ioBuffer(oldData.length);
 
-        boolean success = true;
+        try {
+            from.writeBytes(oldData);
+            boolean success = this.rewriteChunkData(from, to, packet.getSubChunksLength());
+            if (success) {
+                to.writeBytes(from); // Copy the rest
+                byte[] newData = new byte[to.readableBytes()];
+                to.readBytes(newData);
+                packet.setData(newData);
+            }
+            return success;
+        } finally {
+            from.release();
+            to.release();
+        }
+    }
+
+    private boolean rewriteChunkData(ByteBuf from, ByteBuf to, int sections) {
         for (int section = 0; section < sections; section++) {
-            boolean notSupported = false;
             int chunkVersion = from.readUnsignedByte();
             to.writeByte(chunkVersion);
 
             switch (chunkVersion) {
                 case 0: // Legacy block ids, no remap needed
-                case 4: // MiNet uses this format. what is it?
+                case 4: // MiNet uses this format
                 case 139:
-                    from.release();
-                    to.release();
-                    return false;
+                    to.writeBytes(from);
+                    return true;
                 case 8: // New form chunk, baked-in palette
                     int storageCount = from.readUnsignedByte();
                     to.writeByte(storageCount);
@@ -97,26 +109,11 @@ public class BlockMap implements BedrockPacketHandler {
                     }
                     break;
                 default: // Unsupported
-                    notSupported = true;
                     this.player.getLogger().warning("PEBlockRewrite: Unknown subchunk format " + chunkVersion);
-                    break;
-            }
-
-            if (notSupported) {
-                success = false;
-                break;
+                    return false;
             }
         }
-
-        if (success) {
-            to.writeBytes(from); // Copy the rest
-            byte[] newData = new byte[to.readableBytes()];
-            to.readBytes(newData);
-            packet.setData(newData);
-        }
-        from.release();
-        to.release();
-        return success;
+        return true;
     }
 
     @Override

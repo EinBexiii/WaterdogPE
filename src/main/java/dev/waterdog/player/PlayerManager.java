@@ -18,9 +18,11 @@ package dev.waterdog.player;
 import dev.waterdog.ProxyServer;
 import dev.waterdog.utils.types.Permission;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Base Player Manager, managing the registration, binding and removal of instances of ProxiedPlayer.
@@ -29,7 +31,7 @@ public class PlayerManager {
 
     private final ProxyServer proxy;
 
-    private final ConcurrentMap<UUID, ProxiedPlayer> players = new ConcurrentHashMap<>();
+    private final Map<UUID, ProxiedPlayer> players = new ConcurrentHashMap<>();
 
     public PlayerManager(ProxyServer proxy) {
         this.proxy = proxy;
@@ -49,10 +51,10 @@ public class PlayerManager {
     }
 
     public void subscribePermissions(ProxiedPlayer player) {
-        List<String> permissions = new ArrayList<>(this.proxy.getConfiguration().getDefaultPermissions());
-        List<String> playerPermissions = this.proxy.getConfiguration().getPlayerPermissions().get(player.getName());
-        if (playerPermissions != null) {
-            permissions.addAll(playerPermissions);
+        this.proxy.getConfiguration().getDefaultPermissions().forEach(perm -> player.addPermission(new Permission(perm, true)));
+        List<String> permissions = this.proxy.getConfiguration().getPlayerPermissions().get(player.getName());
+        if (permissions == null) {
+            return;
         }
 
         for (String perm : permissions) {
@@ -71,17 +73,18 @@ public class PlayerManager {
     }
 
     public ProxiedPlayer getPlayer(String playerName) {
-        if (playerName == null) return null;
+        if (playerName == null) {
+            return null;
+        }
 
         for (ProxiedPlayer player : this.players.values()) {
             if (!player.getName().toLowerCase().startsWith(playerName.toLowerCase())) {
                 continue;
             }
-
-            int strLen = player.getName().length() - playerName.length();
-            if (strLen == 0) return player;
+            if (player.getName().length() - playerName.length() == 0) {
+                return player;
+            }
         }
-
         return null;
     }
 

@@ -16,6 +16,11 @@
 package dev.waterdog.network.protocol;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.v313.Bedrock_v313;
+import com.nukkitx.protocol.bedrock.v332.Bedrock_v332;
+import com.nukkitx.protocol.bedrock.v340.Bedrock_v340;
+import com.nukkitx.protocol.bedrock.v354.Bedrock_v354;
+import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
 import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
 import com.nukkitx.protocol.bedrock.v389.Bedrock_v389;
 import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
@@ -23,29 +28,32 @@ import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import com.nukkitx.protocol.bedrock.v408.Bedrock_v408;
 import com.nukkitx.protocol.bedrock.v419.Bedrock_v419;
 import com.nukkitx.protocol.bedrock.v422.Bedrock_v422;
+import com.nukkitx.protocol.bedrock.v428.Bedrock_v428;
 import dev.waterdog.network.protocol.codec.BedrockCodec;
 import lombok.ToString;
 
 @ToString(exclude = {"defaultCodec", "bedrockCodec"})
 public enum ProtocolVersion {
 
+    MINECRAFT_PE_1_8(313, Bedrock_v313.V313_CODEC, 9),
+    MINECRAFT_PE_1_9(332, Bedrock_v332.V332_CODEC, 9),
+    MINECRAFT_PE_1_10(340, Bedrock_v340.V340_CODEC, 9),
+    MINECRAFT_PE_1_11(354, Bedrock_v354.V354_CODEC, 9),
+    MINECRAFT_PE_1_12(361, Bedrock_v361.V361_CODEC, 9),
     MINECRAFT_PE_1_13(388, Bedrock_v388.V388_CODEC, 9),
     MINECRAFT_PE_1_14_30(389, Bedrock_v389.V389_CODEC, 9),
     MINECRAFT_PE_1_14_60(390, Bedrock_v390.V390_CODEC, 9),
     MINECRAFT_PE_1_16(407, Bedrock_v407.V407_CODEC, 10),
     MINECRAFT_PE_1_16_20(408, Bedrock_v408.V408_CODEC, 10),
     MINECRAFT_PE_1_16_100(419, Bedrock_v419.V419_CODEC, 10),
-    MINECRAFT_PE_1_16_200(422, Bedrock_v422.V422_CODEC, 10);
+    MINECRAFT_PE_1_16_200(422, Bedrock_v422.V422_CODEC, 10),
+    MINECRAFT_PE_1_16_210(428, Bedrock_v428.V428_CODEC, 10);
 
     private final int protocol;
     private final int raknetVersion;
 
     private final BedrockPacketCodec defaultCodec;
     private BedrockCodec bedrockCodec;
-
-    ProtocolVersion(int protocol, BedrockPacketCodec codec) {
-        this(protocol, codec, ProtocolConstants.DEFAULT_RAKNET_VER);
-    }
 
     ProtocolVersion(int protocol, BedrockPacketCodec codec, int raknetVersion) {
         this.protocol = protocol;
@@ -71,5 +79,9 @@ public enum ProtocolVersion {
 
     public void setBedrockCodec(BedrockCodec bedrockCodec) {
         this.bedrockCodec = bedrockCodec;
+    }
+
+    public String getMinecraftVersion() {
+        return this.getCodec().getMinecraftVersion();
     }
 }

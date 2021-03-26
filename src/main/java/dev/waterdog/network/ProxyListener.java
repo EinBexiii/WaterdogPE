@@ -19,14 +19,14 @@ import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import dev.waterdog.ProxyServer;
+import dev.waterdog.event.defaults.ProxyPingEvent;
+import dev.waterdog.network.protocol.ProtocolConstants;
+import dev.waterdog.network.upstream.HandshakeUpstreamHandler;
 import dev.waterdog.query.QueryHandler;
 import dev.waterdog.utils.ProxyConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import dev.waterdog.event.defaults.ProxyPingEvent;
-import dev.waterdog.network.protocol.ProtocolConstants;
-import dev.waterdog.network.upstream.HandshakeUpstreamHandler;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -56,9 +56,10 @@ public class ProxyListener implements BedrockServerEventHandler {
 
         ProxyPingEvent event = new ProxyPingEvent(
                 config.getMotd(),
-                "SMP",
+                "WaterdogPE Proxy",
+                "Survival",
                 "MCPE",
-                "",
+                ProtocolConstants.getLatestProtocol().getMinecraftVersion(),
                 this.proxy.getPlayerManager().getPlayers().values(),
                 config.getMaxPlayerCount(),
                 address
@@ -68,7 +69,7 @@ public class ProxyListener implements BedrockServerEventHandler {
         BedrockPong pong = PONG_THREAD_LOCAL.get();
         pong.setEdition(event.getEdition());
         pong.setMotd(event.getMotd());
-        pong.setSubMotd("");
+        pong.setSubMotd(event.getSubMotd());
         pong.setGameType(event.getGameType());
         pong.setMaximumPlayerCount(event.getMaximumPlayerCount());
         pong.setPlayerCount(event.getPlayerCount());
@@ -89,7 +90,7 @@ public class ProxyListener implements BedrockServerEventHandler {
     @Override
     public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
         ByteBuf buf = packet.content();
-        if (!buf.isReadable(3)) {
+        if (!buf.isReadable(7)) {
             return;
         }
 

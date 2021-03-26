@@ -27,8 +27,8 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 import dev.waterdog.ProxyServer;
-import dev.waterdog.utils.ProxyConfig;
 import dev.waterdog.network.protocol.ProtocolVersion;
+import dev.waterdog.utils.ProxyConfig;
 
 import javax.crypto.SecretKey;
 import java.net.URI;
@@ -65,7 +65,7 @@ public class HandshakeUtils {
         ECPublicKey lastKey = null;
         boolean validChain = false;
 
-        for (JsonElement element : chainArray){
+        for (JsonElement element : chainArray) {
             JWSObject jwt = JWSObject.parse(element.getAsString());
             if (!validChain) {
                 validChain = EncryptionUtils.verifyJwt(jwt, EncryptionUtils.getMojangPublicKey());
@@ -130,15 +130,16 @@ public class HandshakeUtils {
         ECPublicKey identityPublicKey = EncryptionUtils.generateKey(identityPublicKeyString);
         JWSObject clientJwt = JWSObject.parse(packet.getSkinData().toString());
         EncryptionUtils.verifyJwt(clientJwt, identityPublicKey);
-        JsonObject clientData = HandshakeUtils.parseClientData(clientJwt, session);
+        JsonObject clientData = HandshakeUtils.parseClientData(clientJwt, extraData, session);
         return new HandshakeEntry(identityPublicKey, clientData, extraData, xboxAuth, protocol);
     }
 
-    public static JsonObject parseClientData(JWSObject clientJwt, BedrockSession session) throws Exception {
+    public static JsonObject parseClientData(JWSObject clientJwt, JsonObject extraData, BedrockSession session) throws Exception {
         JsonObject clientData = (JsonObject) JsonParser.parseString(clientJwt.getPayload().toString());
         ProxyConfig config = ProxyServer.getInstance().getConfiguration();
-        if (config.useLoginExtras() && config.isIpForward()) {
+        if (config.useLoginExtras()) {
             // Add waterdog attributes
+            clientData.addProperty("Waterdog_XUID", extraData.get("XUID").getAsString());
             clientData.addProperty("Waterdog_IP", session.getAddress().getAddress().getHostAddress());
         }
         return clientData;

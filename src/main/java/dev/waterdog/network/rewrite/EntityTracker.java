@@ -16,6 +16,7 @@
 package dev.waterdog.network.rewrite;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import dev.waterdog.player.ProxiedPlayer;
@@ -47,6 +48,9 @@ public class EntityTracker implements BedrockPacketHandler {
     @Override
     public boolean handle(AddEntityPacket packet) {
         this.player.getEntities().add(packet.getRuntimeEntityId());
+        for (EntityLinkData entityLink : packet.getEntityLinks()) {
+            this.handleEntityLink(entityLink);
+        }
         return false;
     }
 
@@ -79,5 +83,19 @@ public class EntityTracker implements BedrockPacketHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean handle(SetEntityLinkPacket packet) {
+        this.handleEntityLink(packet.getEntityLink());
+        return false;
+    }
+
+    private void handleEntityLink(EntityLinkData entityLink) {
+        if (entityLink.getType() == EntityLinkData.Type.REMOVE) {
+            this.player.getEntityLinks().remove(entityLink.getFrom());
+        } else {
+            this.player.getEntityLinks().put(entityLink.getFrom(), entityLink.getTo());
+        }
     }
 }

@@ -13,8 +13,8 @@
 
     <properties>
         <raklib.version>1.6.26-SNAPSHOT</raklib.version>
-        <protocol.protocol>bedrock-v422</protocol.protocol>
-        <protocol.version>2.6.2-SNAPSHOT</protocol.version>
+        <protocol.protocol>bedrock-v428</protocol.protocol>
+        <protocol.version>2.6.3-SNAPSHOT</protocol.version>
         <log4j2.version>2.14.0</log4j2.version>
         <jline.version>3.9.0</jline.version>
     </properties>
@@ -240,13 +240,15 @@
                         <transformer
                                 implementation="com.github.edwgiz.mavenShadePlugin.log4j2CacheTransformer.PluginsCacheFileTransformer">
                         </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <mainClass>dev.waterdog.WaterdogPE</mainClass>
                             <manifestEntries>
                                 <Multi-Release>true</Multi-Release>
                             </manifestEntries>
                         </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     </transformers>
                 </configuration>
             </plugin>
